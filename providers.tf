@@ -7,12 +7,12 @@ terraform {
     aws = {
       version = "~> 3.63.0"
     }
-    backend "remote" {
+  }
+  backend "remote" {
     organization = "AWS_DEMO_TBO"
 
     workspaces {
       name = "crc-backend"
     }
-  }
   }
 }
