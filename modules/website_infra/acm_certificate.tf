@@ -1,11 +1,10 @@
 resource "aws_acm_certificate" "website_cert" {
-  domain_name = "www.${var.domain}"
-  #yes, I used the www name in my certificate...no regrats
+  domain_name = var.domain
 
   options {
     certificate_transparency_logging_preference = "ENABLED"
   }
 
-  subject_alternative_names = [var.domain]
+  subject_alternative_names = ["www.${var.domain}"]
   validation_method         = "DNS"
 }
