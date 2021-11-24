@@ -96,7 +96,7 @@ resource "aws_api_gateway_integration" "lambda" {
 
   integration_http_method = "POST"
   type                    = "AWS_PROXY" 
-  uri                     = module.lambda-function.guessed_function_arn
+  uri                     = module.lambda-function.function.invoke_arn
 }
 
 resource "aws_api_gateway_method" "proxy_root" {
@@ -113,7 +113,7 @@ resource "aws_api_gateway_integration" "lambda_root" {
 
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
-  uri                     = module.lambda-function.guessed_function_arn
+  uri                     = module.lambda-function.function.invoke_arn
 }
 
 resource "aws_api_gateway_deployment" "counter" {
@@ -124,4 +124,15 @@ resource "aws_api_gateway_deployment" "counter" {
 
   rest_api_id = "${aws_api_gateway_rest_api.counter_api.id}"
   stage_name  = "test"
+}
+
+resource "aws_lambda_permission" "apigw" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.example.function_name}"
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API".
+  source_arn = "${aws_api_gateway_rest_api.example.execution_arn}/*/*"
 }
