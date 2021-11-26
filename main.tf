@@ -19,6 +19,6 @@ VOLATILITY: Low to Medium. This is the "brains" of the website
 module "website_counter" {
   source             = "./modules/website_counter"
   counter_table_name = "${var.site_name}-counterdb"
-  #reset_counts = true #uncomment to reset the database
-
+  counter_domain     = var.site_name
+  counter_domain_arn = website_infra.aws_acm_certificate_website_cert_arn
 }
