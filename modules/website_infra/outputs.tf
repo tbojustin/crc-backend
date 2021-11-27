@@ -13,3 +13,8 @@ output "aws_cloudfront_distribution_website" {
 output "aws_acm_certificate_website_cert" {
   value = "${aws_acm_certificate.website_cert.id}"
 }
+
+output "aws_acm_certificate_website_cert_arn" {
+  value = "${aws_acm_certificate.website_cert.arn}"
+}
+

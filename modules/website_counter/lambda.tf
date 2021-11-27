@@ -37,6 +37,10 @@ module "lambda-function" {
   handler       = "main.lambda_handler"
   timeout       = 30
   memory_size   = 128
+  environment_variables = {
+    counts_table = var.counter_table_name,
+    counts_table_key = var.counter_table_key_name
+  }
 
   role_arn = module.iam_role.role.arn
 
@@ -74,65 +78,4 @@ module "iam_role" {
         ],
         }
   ]
-}
-
-resource "aws_api_gateway_resource" "proxy" {
-  rest_api_id = aws_api_gateway_rest_api.counter_api.id
-  parent_id   = aws_api_gateway_rest_api.counter_api.root_resource_id
-  path_part   = "{proxy+}"
-}
-
-resource "aws_api_gateway_method" "proxy" {
-  rest_api_id   = aws_api_gateway_rest_api.counter_api.id
-  resource_id   = aws_api_gateway_resource.proxy.id
-  http_method   = "ANY"
-  authorization = "NONE"
-}
-
-resource "aws_api_gateway_integration" "lambda" {
-  rest_api_id = aws_api_gateway_rest_api.counter_api.id
-  resource_id = aws_api_gateway_method.proxy.resource_id
-  http_method = aws_api_gateway_method.proxy.http_method
-
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY" 
-  uri                     = module.lambda-function.function.invoke_arn
-}
-
-resource "aws_api_gateway_method" "proxy_root" {
-  rest_api_id   = aws_api_gateway_rest_api.counter_api.id
-  resource_id   = aws_api_gateway_rest_api.counter_api.root_resource_id
-  http_method   = "ANY"
-  authorization = "NONE"
-}
-
-resource "aws_api_gateway_integration" "lambda_root" {
-  rest_api_id = aws_api_gateway_rest_api.counter_api.id
-  resource_id = aws_api_gateway_method.proxy_root.resource_id
-  http_method = aws_api_gateway_method.proxy_root.http_method
-
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = module.lambda-function.function.invoke_arn
-}
-
-resource "aws_api_gateway_deployment" "counter" {
-  depends_on = [
-    aws_api_gateway_integration.lambda,
-    aws_api_gateway_integration.lambda_root,
-  ]
-
-  rest_api_id = aws_api_gateway_rest_api.counter_api.id
-  stage_name  = "test"
-}
-
-resource "aws_lambda_permission" "apigw" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = module.lambda-function.function.function_name
-  principal     = "apigateway.amazonaws.com"
-
-  # The /*/* portion grants access from any method on any resource
-  # within the API Gateway "REST API".
-  source_arn = "${aws_api_gateway_rest_api.counter_api.execution_arn}/*/*"
 }
