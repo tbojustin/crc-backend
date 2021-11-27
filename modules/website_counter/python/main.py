@@ -54,5 +54,6 @@ def lambda_handler(event, context):
             'Access-Control-Allow-Origin': 'https://www.justinthibault.xyz',
             'Access-Control-Allow-Methods': '*'
         },
-        'body': get_latest_count('justinthibault.xyz-counterdb', 'URL_path', '/')
+        # counts_table & counts_table_key are setup as variables when the lambda function was made
+        'body': get_latest_count(os.environ['counts_table'], os.environ['counts_table_key'], '/')
     }
