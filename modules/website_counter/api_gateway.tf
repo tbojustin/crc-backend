@@ -1,67 +1,80 @@
-# Followed this guide: https://registry.terraform.io/providers/hashicorp/aws/2.33.0/docs/guides/serverless-with-aws-lambda-and-api-gateway
+/* Followed this guide: https://levelup.gitconnected.com/deploy-lambda-function-and-api-gateway-using-terraform-d12cdc50dee8
+*/
 
-resource "aws_api_gateway_rest_api" "counter_api" {
+
+resource "aws_api_gateway_rest_api" "apiLambda" {
   name        = "crc_counter_api"
-  description = "api for the website counter"
 }
+
+
 
 resource "aws_api_gateway_resource" "proxy" {
-  rest_api_id = aws_api_gateway_rest_api.counter_api.id
-  parent_id   = aws_api_gateway_rest_api.counter_api.root_resource_id
-  path_part   = "counter_api"
+   rest_api_id = aws_api_gateway_rest_api.apiLambda.id
+   parent_id   = aws_api_gateway_rest_api.apiLambda.root_resource_id
+   path_part   = "{proxy+}"
 }
 
-resource "aws_api_gateway_method" "proxy" {
-  rest_api_id   = aws_api_gateway_rest_api.counter_api.id
-  resource_id   = aws_api_gateway_resource.proxy.id
-  http_method   = "ANY"
-  authorization = "NONE"
+resource "aws_api_gateway_method" "proxyMethod" {
+   rest_api_id   = aws_api_gateway_rest_api.apiLambda.id
+   resource_id   = aws_api_gateway_resource.proxy.id
+   http_method   = "ANY"
+   authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "lambda" {
-  rest_api_id = aws_api_gateway_rest_api.counter_api.id
-  resource_id = aws_api_gateway_method.proxy.resource_id
-  http_method = aws_api_gateway_method.proxy.http_method
+   rest_api_id = aws_api_gateway_rest_api.apiLambda.id
+   resource_id = aws_api_gateway_method.proxyMethod.resource_id
+   http_method = aws_api_gateway_method.proxyMethod.http_method
 
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY" 
-  uri                     = module.lambda-function.function.invoke_arn
+   integration_http_method = "POST"
+   type                    = "AWS_PROXY"
+   uri                     = module.lambda-function.function.invoke_arn
 }
 
+
+
+
 resource "aws_api_gateway_method" "proxy_root" {
-  rest_api_id   = aws_api_gateway_rest_api.counter_api.id
-  resource_id   = aws_api_gateway_rest_api.counter_api.root_resource_id
-  http_method   = "ANY"
-  authorization = "NONE"
+   rest_api_id   = aws_api_gateway_rest_api.apiLambda.id
+   resource_id   = aws_api_gateway_rest_api.apiLambda.root_resource_id
+   http_method   = "ANY"
+   authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "lambda_root" {
-  rest_api_id = aws_api_gateway_rest_api.counter_api.id
-  resource_id = aws_api_gateway_method.proxy_root.resource_id
-  http_method = aws_api_gateway_method.proxy_root.http_method
+   rest_api_id = aws_api_gateway_rest_api.apiLambda.id
+   resource_id = aws_api_gateway_method.proxy_root.resource_id
+   http_method = aws_api_gateway_method.proxy_root.http_method
 
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = module.lambda-function.function.invoke_arn
+   integration_http_method = "POST"
+   type                    = "AWS_PROXY"
+   uri                     = module.lambda-function.function.invoke_arn
 }
 
-resource "aws_api_gateway_deployment" "counter" {
-  depends_on = [
-    aws_api_gateway_integration.lambda,
-    aws_api_gateway_integration.lambda_root,
-  ]
 
-  rest_api_id = aws_api_gateway_rest_api.counter_api.id
-  stage_name  = "test"
+resource "aws_api_gateway_deployment" "apideploy" {
+   depends_on = [
+     aws_api_gateway_integration.lambda,
+     aws_api_gateway_integration.lambda_root,
+   ]
+
+   rest_api_id = aws_api_gateway_rest_api.apiLambda.id
+   stage_name  = "test"
 }
+
 
 resource "aws_lambda_permission" "apigw" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = module.lambda-function.function.function_name
-  principal     = "apigateway.amazonaws.com"
+   statement_id  = "AllowAPIGatewayInvoke"
+   action        = "lambda:InvokeFunction"
+   function_name = module.lambda-function.function.function_name
+   principal     = "apigateway.amazonaws.com"
 
-  # The /*/* portion grants access from any method on any resource
-  # within the API Gateway "REST API".
-  source_arn = "${aws_api_gateway_rest_api.counter_api.execution_arn}/*/*"
+   # The "/*/*" portion grants access from any method on any resource
+   # within the API Gateway REST API.
+   source_arn = "${aws_api_gateway_rest_api.apiLambda.execution_arn}/*/*"
+}
+
+
+output "base_url" {
+  value = aws_api_gateway_deployment.apideploy.invoke_url
 }
