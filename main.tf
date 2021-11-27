@@ -17,8 +17,8 @@ VOLATILITY: Low to Medium. This is the "brains" of the website
 */
 
 module "website_counter" {
-  source             = "./modules/website_counter"
-  counter_table_name = "${var.site_name}-counterdb"
-  counter_domain     = var.site_name
-  counter_domain_arn = module.website_infra.aws_acm_certificate_website_cert_arn
+  source                 = "./modules/website_counter"
+  counter_table_name     = "${var.site_name}-counterdb"
+  counter_table_key_name = "URL_path"
+
 }

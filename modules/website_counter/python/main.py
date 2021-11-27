@@ -43,12 +43,16 @@ def get_latest_count(table_name, key_name, path_value):
         raise
     return(count_item['Item']['counts'])
 def lambda_handler(event, context):
+
     update_counts_table('justinthibault.xyz-counterdb', 'URL_path', '/')
 
     return {
     'statusCode': 200,
     'headers': {
-            'Content-Type': 'text/plain'
+            'Content-Type': 'text/plain',
+            'Access-Control-Allow-Headers': '*',
+            'Access-Control-Allow-Origin': 'https://www.justinthibault.xyz',
+            'Access-Control-Allow-Methods': '*'
         },
         'body': get_latest_count('justinthibault.xyz-counterdb', 'URL_path', '/')
     }

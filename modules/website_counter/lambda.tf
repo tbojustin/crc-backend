@@ -37,6 +37,10 @@ module "lambda-function" {
   handler       = "main.lambda_handler"
   timeout       = 30
   memory_size   = 128
+  environment_variables = {
+    counts_table = var.counter_table_name,
+    counts_table_key = var.counter_table_key_name
+  }
 
   role_arn = module.iam_role.role.arn
 
