@@ -25,6 +25,6 @@ module "website_counter" {
   api_name            = "crc_counter_api"
   #the AWS Lambda Module this uses needs both of these
   python_source_file = "${path.root}/python/main.py"
-  python_output_path  = "${path.root}/python/main.py.zip"
+  python_output_path = "${path.root}/python/main.py.zip"
 
 }
