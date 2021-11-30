@@ -8,6 +8,7 @@ https://stackoverflow.com/questions/37053595/how-do-i-conditionally-insert-an-it
 from pprint import pprint
 import json
 import os
+import test
 
 import boto3
 from botocore.exceptions import ClientError
@@ -43,9 +44,12 @@ def get_latest_count(table_name, key_name, path_value):
         raise
     return(count_item['Item']['counts'])
 def lambda_handler(event, context):
-
+    
+    #setup for unit_test
+    #test.test_get_visitors_counter()
+    
     update_counts_table('justinthibault.xyz-counterdb', 'URL_path', '/')
-
+    
     return {
     'statusCode': 200,
     'headers': {
@@ -54,6 +58,6 @@ def lambda_handler(event, context):
             'Access-Control-Allow-Origin': 'https://www.justinthibault.xyz',
             'Access-Control-Allow-Methods': '*'
         },
-        # counts_table & counts_table_key are setup as variables when the lambda function was made
-        'body': get_latest_count(os.environ['counts_table'], os.environ['counts_table_key'], '/')
+        # counts_table & counts_table_key are set up as variables when the lambda function was made
+        'body': get_latest_count(os.environ['main_table'], os.environ['main_table_key'], '/')
     }

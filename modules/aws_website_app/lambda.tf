@@ -18,8 +18,8 @@
 
 data "archive_file" "lambda" {
   type        = "zip"
-  source_file = "${path.module}/python/main.py"
-  output_path = "${path.module}/python/main.py.zip"
+  source_file = var.python_source_file
+  output_path = var.python_output_path
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -31,15 +31,15 @@ module "lambda-function" {
   version = "~> 0.5.0"
 
   function_name = "python-function"
-  description   = "All the Pythonic goodness for the CRC project"
+  description   = "All the Pythonic goodness for the project"
   filename      = data.archive_file.lambda.output_path
-  runtime       = "python3.8"
+  runtime       = "python3.9"
   handler       = "main.lambda_handler"
   timeout       = 30
   memory_size   = 128
   environment_variables = {
-    counts_table = var.counter_table_name,
-    counts_table_key = var.counter_table_key_name
+    main_table = var.main_table_name,
+    main_table_key = var.main_table_key_name
   }
 
   role_arn = module.iam_role.role.arn
@@ -73,8 +73,8 @@ module "iam_role" {
         "dynamodb:UpdateItem"
       ]
       resources= [
-        aws_dynamodb_table.counter_table.arn,
-        "${aws_dynamodb_table.counter_table.arn}/*"
+        aws_dynamodb_table.main_table.arn,
+        "${aws_dynamodb_table.main_table.arn}/*"
         ],
         }
   ]

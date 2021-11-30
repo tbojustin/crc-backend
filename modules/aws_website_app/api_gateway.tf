@@ -1,9 +1,9 @@
 /* Followed this guide: https://levelup.gitconnected.com/deploy-lambda-function-and-api-gateway-using-terraform-d12cdc50dee8
 */
-
+#TODO: Make API name the same as the domain
 
 resource "aws_api_gateway_rest_api" "apiLambda" {
-  name        = "crc_counter_api"
+  name        = var.api_name
 }
 
 
